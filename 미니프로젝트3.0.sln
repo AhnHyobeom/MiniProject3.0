@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "미니프로젝트3.0", "Day015-01 color\미니프로젝트3.0.csproj", "{0794C53E-3EEA-4ECF-B182-09DD0AF1B0C2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0794C53E-3EEA-4ECF-B182-09DD0AF1B0C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0794C53E-3EEA-4ECF-B182-09DD0AF1B0C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0794C53E-3EEA-4ECF-B182-09DD0AF1B0C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0794C53E-3EEA-4ECF-B182-09DD0AF1B0C2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {73FD1957-0A66-44E4-B88D-46B2F8CCB756}
+	EndGlobalSection
+EndGlobal
