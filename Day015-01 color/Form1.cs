@@ -1914,7 +1914,7 @@ namespace Day015_01_color
         void colorExtraction_CV()
         {
             /*0 ~7, 173 ~180 RED
-            8 ~22 주황 ORANGE
+            8 ~22 주황 ORANGE                            
             23 ~37 노랑 YELLOW
             38 ~52 CHARTREUSE GREEN 연두색 녹색
             53 ~67 초록 GREEN
@@ -1924,13 +1924,22 @@ namespace Day015_01_color
             113 ~127 Blue 파란색
             128 ~142 violet 보라색
             143 ~157 magenta 자홍색
-            158 ~172 rose       +- 3씩 권장*/
+            158 ~172 rose       
+            tomato 사진 기준으로 빨강 0 ~ 7  주황 8 ~ 20 노랑 26 ~ 33
+            초록( -> 춘록색) 68 ~ 82 파랑 111 ~ 120 보라( -> 자홍) 144 ~ 152 */
+            byte[] selectColorArray = { 0, 7, 8, 20, 26, 33, 38, 52, 53, 67, 68, 82, 83, 97, 98, 112, 111, 120, 122, 148, 144, 152, 177, 180 };
+            InRangeColor irc = new InRangeColor();
+            if(irc.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+            int selectColor = irc.colorValue;
             outCvImage = new Mat();
             Mat hsv = new Mat();
             Cv2.CvtColor(inCvImage, hsv, ColorConversionCodes.BGR2HSV); // RGB --> HSV
             Mat[] HSV = Cv2.Split(hsv);
             Mat H = new Mat(inCvImage.Size(), MatType.CV_8UC1);
-            Cv2.InRange(HSV[0], new Scalar(8), new Scalar(22), H); // 색상 범위 제한 두번 안된다?
+            Cv2.InRange(HSV[0], new Scalar(selectColorArray[selectColor]), new Scalar(selectColorArray[selectColor] + 1), H); // 색상 범위 제한 두번 안된다?
             //Cv2.InRange(HSV[0], new Scalar(113), new Scalar(127), H); // 색상 범위 제한 
             Cv2.BitwiseAnd(hsv, hsv, outCvImage, H); // 원본 이미지를 가지고 Object 추출 이미지로 생성
             Cv2.CvtColor(outCvImage, outCvImage, ColorConversionCodes.HSV2BGR); // HSV --> RGB
