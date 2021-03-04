@@ -44,9 +44,75 @@ namespace Day015_01_color
         Mat inCvImage, outCvImage;
 
         //메뉴 이벤트 처리부
-        private void 블러링ToolStripMenuItem1_Click(object sender, EventArgs e)
+        private void 색추출ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            colorExtraction_CV();
+        }
+        private void 경계선추출ToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            outCvImage = new Mat();
+            Cv2.Sobel(inCvImage, outCvImage, MatType.CV_8UC1, 1, 0, 3, 1, 0, BorderTypes.Reflect101);
+            Cv2ToOutImage();
+        }
+        private void 코너검출ToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            corner_CV();
+        }
+        private void 원검출ToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            findCircle_CV();
+        }
+        private void 다각형검출ToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            findPolygon_CV();
+        }
+        private void 윤곽선찾기ToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            findContours_CV();
+        }
+        private void 확대ToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            sizeUp_CV();
+        }
+        private void 축소ToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            sizeDown_CV();
+        }
+        private void 회전ToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            rotate_CV();
+        }
+        private void 침식ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            erode_CV();
+        }
+        private void 팽창ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            dilate_CV();
+        }
+        private void 아핀변환ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AffineTransform_CV();
+        }
+        private void 블러링ToolStripMenuItem1_Click_1(object sender, EventArgs e)
         {
             blurrImage_CV();
+        }
+        private void 가우시안블러링ToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            GaussianBlur_CV();
+        }
+        private void 양방향블러링ToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            BilaeralFilter_CV();
+        }
+        private void 미디ToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            MedianBlur_CV();
+        }
+        private void 박스필터블러링ToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            boxFilterBlur_CV();
         }
         private void 이진화ToolStripMenuItem1_Click(object sender, EventArgs e)
         {
@@ -410,7 +476,7 @@ namespace Day015_01_color
             // 벽, 게시판, 종이 크기 조절    900, 600
             paper = new Bitmap(outH, outW); // 종이
             pictureBox1.Size = new System.Drawing.Size(outH, outW); // 캔버스
-            this.Size = new System.Drawing.Size(outH + 20, outW + 80); // 벽
+            this.Size = new System.Drawing.Size(outH + 80, outW + 100); // 벽
             Color pen; // 펜(콕콕 찍을 용도)
             for (int i = 0; i < outH; i++)
             {
@@ -1696,7 +1762,179 @@ namespace Day015_01_color
         }
         void boxFilterBlur_CV()
         {
-            //Cv2.BoxFilter(inCvImage, box_filter, MatType.CV_8UC3, new Size(15, 15), new Point(-1, -1), true, BorderTypes.Default);
+            outCvImage = new Mat();
+            int kernel = Math.Abs(getKernelSize());
+            Cv2.BoxFilter(inCvImage, outCvImage, MatType.CV_8UC3, new OpenCvSharp.Size(kernel, kernel), new OpenCvSharp.Point(-1, -1), true, BorderTypes.Default);
+            Cv2ToOutImage();
+        }
+        void GaussianBlur_CV()
+        {
+            outCvImage = new Mat();
+            int kernel = Math.Abs(getKernelSize());
+            Cv2.GaussianBlur(inCvImage, outCvImage, new OpenCvSharp.Size(kernel, kernel), 1, 1, BorderTypes.Default); 
+            Cv2ToOutImage();
+        }
+        void MedianBlur_CV()
+        {
+            outCvImage = new Mat();
+            int kernel = Math.Abs(getKernelSize());
+            Cv2.MedianBlur(inCvImage, outCvImage, kernel); 
+            Cv2ToOutImage();
+        }
+        void BilaeralFilter_CV()
+        { // 가장자리(Edge)를 선명하게 보존하면서 노이즈를 우수하게 제거하는 흐림 효과 함수
+            outCvImage = new Mat();
+            int kernel = Math.Abs(getKernelSize());
+            Cv2.BilateralFilter(inCvImage, outCvImage, 9, kernel, kernel, BorderTypes.Default); 
+            Cv2ToOutImage();
+        }
+        void findContours_CV()
+        {
+            outCvImage = new Mat();
+            inCvImage.CopyTo(outCvImage); // 복사
+            Mat bin = new Mat();
+            Cv2.CvtColor(inCvImage, bin, ColorConversionCodes.BGR2GRAY);
+            // 이미지에 따라 thresh 조정 colorball.png -> 80, OpenCV_Logo.png -> 180
+            Cv2.Threshold(bin, bin, 180, 255, ThresholdTypes.Binary); // 이진화
+
+            Mat hierarchy1 = new Mat();
+            Cv2.FindContours(bin, out Mat[] contour1, hierarchy1, RetrievalModes.Tree, ContourApproximationModes.ApproxSimple);
+            for (int i = 0; i < contour1.Length; i++)
+            {
+                Cv2.DrawContours(outCvImage, contour1, i, Scalar.Tomato, 3, LineTypes.AntiAlias);
+            }
+            Cv2ToOutImage();
+        }
+        void AffineTransform_CV()
+        { // 미완성
+            outCvImage = new Mat();
+            List<Point2f> inCvImage_pts = new List<Point2f>()
+            {
+                new Point2f(0.0f, 0.0f),
+                new Point2f(0.0f, inCvImage.Height),
+                new Point2f(inCvImage.Width, inCvImage.Height)
+            };
+
+            List<Point2f> outCvImage_pts = new List<Point2f>()
+            {
+               new Point2f(300.0f, 300.0f),
+               new Point2f(300.0f, outCvImage.Height),
+               new Point2f(outCvImage.Width - 400.0f, outCvImage.Height - 200.0f)
+            };
+            Mat matrix = Cv2.GetAffineTransform(inCvImage_pts, outCvImage_pts);
+            Cv2.WarpAffine(inCvImage, outCvImage, matrix, new OpenCvSharp.Size(inCvImage.Width, inCvImage.Height));
+            Cv2ToOutImage();
+        }
+        void erode_CV()
+        {
+            outCvImage = new Mat();
+            int kernel = Math.Abs(getKernelSize());
+            Mat element = Cv2.GetStructuringElement(MorphShapes.Cross, new OpenCvSharp.Size(kernel, kernel));
+            Cv2.Erode(inCvImage, outCvImage, element, new OpenCvSharp.Point(-1, -1), 3);
+            Cv2ToOutImage();
+        }
+        void dilate_CV()
+        {
+            outCvImage = new Mat();
+            int kernel = Math.Abs(getKernelSize());
+            Mat element = Cv2.GetStructuringElement(MorphShapes.Cross, new OpenCvSharp.Size(kernel, kernel));
+            Cv2.Dilate(inCvImage, outCvImage, element, new OpenCvSharp.Point(2, 2), 3);
+            Cv2ToOutImage();
+        }
+        void sizeUp_CV()
+        {
+            outCvImage = new Mat();
+            Cv2.PyrUp(inCvImage, outCvImage);
+            Cv2ToOutImage();
+        }
+        void sizeDown_CV()
+        {
+            outCvImage = new Mat();
+            Cv2.PyrDown(inCvImage, outCvImage);
+            Cv2ToOutImage();
+        }
+        void rotate_CV()
+        {
+            outCvImage = new Mat();
+            int kernel = Math.Abs(getKernelSize());
+            Mat matrix = Cv2.GetRotationMatrix2D(new Point2f(inCvImage.Width / 2, inCvImage.Height / 2), kernel, 1.0);
+            Cv2.WarpAffine(inCvImage, outCvImage, matrix, new OpenCvSharp.Size(inCvImage.Width, inCvImage.Height));
+            Cv2ToOutImage();
+        }
+        void corner_CV()
+        {
+            outCvImage = new Mat();
+            Mat gray = new Mat();
+            outCvImage = inCvImage.Clone();
+            Cv2.CvtColor(inCvImage, gray, ColorConversionCodes.BGR2GRAY);
+            Point2f[] corners = Cv2.GoodFeaturesToTrack(gray, 1000, 0.03, 5, null, 3, false, 0);
+            for (int i = 0; i < corners.Length; i++)
+            {
+                OpenCvSharp.Point pt = new OpenCvSharp.Point((int)corners[i].X, (int)corners[i].Y);
+                Cv2.Circle(outCvImage, pt, 5, Scalar.Yellow, Cv2.FILLED);
+            }
+            Cv2ToOutImage();
+        }
+        void findCircle_CV()
+        {
+            Mat image = new Mat();
+            outCvImage = inCvImage.Clone();
+            Mat kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(3, 3));
+            Cv2.CvtColor(inCvImage, image, ColorConversionCodes.BGR2GRAY);
+            Cv2.Dilate(image, image, kernel, new OpenCvSharp.Point(-1, -1), 3);
+            Cv2.GaussianBlur(image, image, new OpenCvSharp.Size(13, 13), 3, 3, BorderTypes.Reflect101);
+            Cv2.Erode(image, image, kernel, new OpenCvSharp.Point(-1, -1), 3);
+            CircleSegment[] circles = Cv2.HoughCircles(image, HoughModes.Gradient, 1, 100, 100, 35, 0, 0);
+            for (int i = 0; i < circles.Length; i++)
+            {
+                OpenCvSharp.Point center = new OpenCvSharp.Point(circles[i].Center.X, circles[i].Center.Y);
+                Cv2.Circle(outCvImage, center, (int)circles[i].Radius, Scalar.White, 3);
+                Cv2.Circle(outCvImage, center, 5, Scalar.AntiqueWhite, Cv2.FILLED);
+            }
+            Cv2ToOutImage();
+        }
+        void findPolygon_CV()
+        { // 노란색만 검출
+            outCvImage = inCvImage.Clone();
+            Mat yellow = new Mat();
+            OpenCvSharp.Point[][] contours;
+            HierarchyIndex[] hierarchy;
+            Cv2.InRange(inCvImage, new Scalar(0, 127, 127), new Scalar(100, 255, 255), yellow);
+            Cv2.FindContours(yellow, out contours, out hierarchy, RetrievalModes.Tree, ContourApproximationModes.ApproxTC89KCOS);
+            List<OpenCvSharp.Point[]> new_contours = new List<OpenCvSharp.Point[]>();
+            foreach (OpenCvSharp.Point[] p in contours)
+            {
+                double length = Cv2.ArcLength(p, true);
+                if (length < 100) continue;
+                new_contours.Add(Cv2.ApproxPolyDP(p, length * 0.0075, true));
+            }
+            Cv2.DrawContours(outCvImage, new_contours, -1, new Scalar(255, 0, 0), 2, LineTypes.AntiAlias, null, 1);
+            Cv2ToOutImage();
+        }
+        void colorExtraction_CV()
+        {
+            /*0 ~7, 173 ~180 RED
+            8 ~22 주황 ORANGE
+            23 ~37 노랑 YELLOW
+            38 ~52 CHARTREUSE GREEN 연두색 녹색
+            53 ~67 초록 GREEN
+            68 ~82 Spring Green 춘 록색
+            83 ~97 Cyan 청록색
+            98 ~112 Azure 하늘색
+            113 ~127 Blue 파란색
+            128 ~142 violet 보라색
+            143 ~157 magenta 자홍색
+            158 ~172 rose       +- 3씩 권장*/
+            outCvImage = new Mat();
+            Mat hsv = new Mat();
+            Cv2.CvtColor(inCvImage, hsv, ColorConversionCodes.BGR2HSV); // RGB --> HSV
+            Mat[] HSV = Cv2.Split(hsv);
+            Mat H = new Mat(inCvImage.Size(), MatType.CV_8UC1);
+            Cv2.InRange(HSV[0], new Scalar(8), new Scalar(22), H); // 색상 범위 제한 두번 안된다?
+            //Cv2.InRange(HSV[0], new Scalar(113), new Scalar(127), H); // 색상 범위 제한 
+            Cv2.BitwiseAnd(hsv, hsv, outCvImage, H); // 원본 이미지를 가지고 Object 추출 이미지로 생성
+            Cv2.CvtColor(outCvImage, outCvImage, ColorConversionCodes.HSV2BGR); // HSV --> RGB
+            Cv2ToOutImage();
         }
     }
 }
