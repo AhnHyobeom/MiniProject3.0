@@ -44,6 +44,14 @@ namespace Day015_01_color
         Mat inCvImage, outCvImage;
 
         //메뉴 이벤트 처리부
+        private void 원근변환ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            perspectiveTr_CV();
+        }
+        private void convexHullToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            convexHull_CV();
+        }
         private void 색추출ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             colorExtraction_CV();
@@ -92,7 +100,15 @@ namespace Day015_01_color
         }
         private void 아핀변환ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            AffineTransform_CV();
+            affineTransform_CV();
+        }
+        private void 엠보싱ToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            emboss_CV();
+        }
+        private void 샤프닝ToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            sharp_CV();
         }
         private void 블러링ToolStripMenuItem1_Click_1(object sender, EventArgs e)
         {
@@ -1788,6 +1804,22 @@ namespace Day015_01_color
             Cv2.BilateralFilter(inCvImage, outCvImage, 9, kernel, kernel, BorderTypes.Default); 
             Cv2ToOutImage();
         }
+        void sharp_CV()
+        {
+            outCvImage = new Mat();
+            float[] data = new float[9] { -1, -1, -1, -1, 9, -1, -1, -1, -1};
+            Mat kernel = new Mat(3, 3, MatType.CV_32F, data);
+            Cv2.Filter2D(inCvImage, outCvImage, inCvImage.Type(), kernel, new OpenCvSharp.Point(0, 0));
+            Cv2ToOutImage();
+        }
+        void emboss_CV()
+        {
+            outCvImage = new Mat();
+            float[] data = new float[9] { -1, -1, 0, -1, 0, 1, 0, 1, 1 };
+            Mat kernel = new Mat(3, 3, MatType.CV_32F, data);
+            Cv2.Filter2D(inCvImage, outCvImage, inCvImage.Type(), kernel, new OpenCvSharp.Point(0, 0));
+            Cv2ToOutImage();
+        }
         void findContours_CV()
         {
             outCvImage = new Mat();
@@ -1805,21 +1837,21 @@ namespace Day015_01_color
             }
             Cv2ToOutImage();
         }
-        void AffineTransform_CV()
-        { // 미완성
+        void affineTransform_CV()
+        { 
             outCvImage = new Mat();
             List<Point2f> inCvImage_pts = new List<Point2f>()
             {
-                new Point2f(0.0f, 0.0f),
-                new Point2f(0.0f, inCvImage.Height),
-                new Point2f(inCvImage.Width, inCvImage.Height)
+                new Point2f(0.0f, 0.0f),        // 1번 좌표 왼쪽 위
+                new Point2f(0.0f, inCvImage.Height), // 2번 좌표 오른쪽 위
+                new Point2f(inCvImage.Width, inCvImage.Height) // 3번 좌표 오른쪽 아래
             };
 
             List<Point2f> outCvImage_pts = new List<Point2f>()
             {
-               new Point2f(300.0f, 300.0f),
-               new Point2f(300.0f, outCvImage.Height),
-               new Point2f(outCvImage.Width - 400.0f, outCvImage.Height - 200.0f)
+               new Point2f(40.0f, 40.0f),   // output 1번의 위치
+               new Point2f(220.0f, inCvImage.Width - 250.0f),   // output 2번의 위치
+               new Point2f(inCvImage.Height - 350.0f, inCvImage.Width)   // output 3번의 위치
             };
             Mat matrix = Cv2.GetAffineTransform(inCvImage_pts, outCvImage_pts);
             Cv2.WarpAffine(inCvImage, outCvImage, matrix, new OpenCvSharp.Size(inCvImage.Width, inCvImage.Height));
@@ -1937,12 +1969,50 @@ namespace Day015_01_color
             outCvImage = new Mat();
             Mat hsv = new Mat();
             Cv2.CvtColor(inCvImage, hsv, ColorConversionCodes.BGR2HSV); // RGB --> HSV
-            Mat[] HSV = Cv2.Split(hsv);
+            Mat[] HSV = Cv2.Split(hsv); // HSV 나누기 
             Mat H = new Mat(inCvImage.Size(), MatType.CV_8UC1);
-            Cv2.InRange(HSV[0], new Scalar(selectColorArray[selectColor]), new Scalar(selectColorArray[selectColor] + 1), H); // 색상 범위 제한 두번 안된다?
-            //Cv2.InRange(HSV[0], new Scalar(113), new Scalar(127), H); // 색상 범위 제한 
+            Cv2.InRange(HSV[0], new Scalar(selectColorArray[selectColor]), new Scalar(selectColorArray[selectColor] + 1), H);
             Cv2.BitwiseAnd(hsv, hsv, outCvImage, H); // 원본 이미지를 가지고 Object 추출 이미지로 생성
             Cv2.CvtColor(outCvImage, outCvImage, ColorConversionCodes.HSV2BGR); // HSV --> RGB
+            Cv2ToOutImage();
+        }
+        void convexHull_CV()
+        { // 미완 -> 왜 이미지 끝 부분으로 설정되는지
+            outCvImage = new Mat(); 
+            Mat bin = new Mat();
+            inCvImage.CopyTo(outCvImage); 
+            Cv2.CvtColor(inCvImage, bin, ColorConversionCodes.BGR2GRAY); 
+            Cv2.Threshold(bin, bin, 0, 255, ThresholdTypes.Otsu); 
+            Cv2.FindContours(bin, out OpenCvSharp.Point[][] contour, out HierarchyIndex[] hierarchy, RetrievalModes.Tree, ContourApproximationModes.ApproxSimple); 
+            Cv2.DrawContours(outCvImage, contour, 0, Scalar.Tomato, 2, LineTypes.AntiAlias, hierarchy);
+            OpenCvSharp.Point[][] hull = new OpenCvSharp.Point[contour.Length][];
+            for(int i = 0; i < contour.Length; i++)
+            {
+                hull[i] = Cv2.ConvexHull(contour[i]); 
+            }
+            Cv2.DrawContours(outCvImage, hull, 0, Scalar.Yellow, 2, LineTypes.AntiAlias);
+            Cv2ToOutImage();
+        }
+        void perspectiveTr_CV()
+        {
+            outCvImage = new Mat();
+            List<Point2f> inCvImage_pts = new List<Point2f>()
+            {
+                new Point2f(0.0f, 0.0f),        
+                new Point2f(0.0f, inCvImage.Width), 
+                new Point2f(inCvImage.Height, inCvImage.Width),
+                new Point2f(inCvImage.Height, 0.0f)
+            };
+
+            List<Point2f> outCvImage_pts = new List<Point2f>()
+            {
+               new Point2f(200.0f, 100.0f),   
+               new Point2f(200.0f, inCvImage.Width),   
+               new Point2f(inCvImage.Height - 300.0f, inCvImage.Width - 100.0f),   
+               new Point2f(inCvImage.Height - 100.0f, 100.0f)   
+            };
+            Mat matrix = Cv2.GetPerspectiveTransform(inCvImage_pts, outCvImage_pts);
+            Cv2.WarpPerspective(inCvImage, outCvImage, matrix, new OpenCvSharp.Size(inCvImage.Width, inCvImage.Height));
             Cv2ToOutImage();
         }
     }
