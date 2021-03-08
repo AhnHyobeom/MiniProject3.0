@@ -67,7 +67,7 @@ namespace Day015_01_color
             byte[] blob_data = new byte[f_fsize];
             fs.Read(blob_data, 0, (int)f_fsize);
             fs.Close();
-
+            // SET GLOBAL max_allowed_packet = 1024 * 1024 * 1024; 쿼리 최대길이 제한 수정
             cmd.Parameters.Clear();
             cmd.Parameters.AddWithValue("@BLOB_DATA", blob_data);
             cmd.CommandText = sql;  // 짐을 트럭에 싣기

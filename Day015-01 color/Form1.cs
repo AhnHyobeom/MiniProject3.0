@@ -473,22 +473,6 @@ namespace Day015_01_color
             }
             /*byte[] f_data = new byte[RGB * outH * outW];
             System.Buffer.BlockCopy(outImage, 0, f_data, 0, RGB * sizeof(byte) * outH * outW);*/
-            String full_name = "C:\\TempImages\\" + saveIndex++ + "번째 이미지.png";
-            Bitmap image = new Bitmap(outH, outW); // 빈 비트맵(종이) 준비
-            for (int i = 0; i < outH; i++)
-            {
-                for (int k = 0; k < outW; k++)
-                {
-                    Color c;
-                    int r, g, b;
-                    r = outImage[0, i, k];
-                    g = outImage[1, i, k];
-                    b = outImage[2, i, k];
-                    c = Color.FromArgb(r, g, b);
-                    image.SetPixel(i, k, c);  // 종이에 콕콕 찍기
-                }
-            }
-            image.Save(full_name, ImageFormat.Png); // 종이를 PNG로 저장
             // 벽, 게시판, 종이 크기 조절    900, 600
             paper = new Bitmap(outH, outW); // 종이
             pictureBox1.Size = new System.Drawing.Size(outH, outW); // 캔버스
@@ -498,17 +482,19 @@ namespace Day015_01_color
             {
                 for (int j = 0; j < outW; j++)
                 {
-                    byte r = outImage[RR,i, j]; // 잉크(색상값)
-                    byte g = outImage[GG,i, j]; // 잉크(색상값)
-                    byte b = outImage[BB,i, j]; // 잉크(색상값)
+                    byte r = outImage[RR, i, j]; // 잉크(색상값)
+                    byte g = outImage[GG, i, j]; // 잉크(색상값)
+                    byte b = outImage[BB, i, j]; // 잉크(색상값)
                     pen = Color.FromArgb(r, g, b); // 펜에 잉크 묻히기
                     paper.SetPixel(i, j, pen); // 종이에 콕 찍기
                 }
             }
+            String full_name = "C:\\TempImages\\" + saveIndex++ + "번째 이미지.png";
+            paper.Save(full_name, ImageFormat.Png); // 종이를 PNG로 저장
             pictureBox1.Image = paper; // 게시판에 종이를 붙이기.
             //실행 취소 -> 파일경로 구현 못함
             toolStripStatusLabel1.Text =
-                outH.ToString() + "x" + outW.ToString() + "  " + fileName;
+                outH.ToString() + "x" + outW.ToString();
         }
         double getValue()
         {
@@ -1977,7 +1963,7 @@ namespace Day015_01_color
             Cv2ToOutImage();
         }
         void convexHull_CV()
-        { // 미완 -> 왜 이미지 끝 부분으로 설정되는지
+        {
             outCvImage = new Mat(); 
             Mat bin = new Mat();
             inCvImage.CopyTo(outCvImage); 

@@ -85,11 +85,6 @@ namespace Day015_01_color
             }
             this.DialogResult = DialogResult.OK;
         }
-        /*public string LabelText
-        {
-            get { return lb_ing.Text; }
-            set { lb_ing.Text = value; }
-        }*/
         private void SaveDB_Load(object sender, EventArgs e)
         {
             conn = new MySqlConnection(connStr);
@@ -100,6 +95,5 @@ namespace Day015_01_color
         {
             conn.Close();
         }
-
     }
 }
