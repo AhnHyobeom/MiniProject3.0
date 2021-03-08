@@ -195,6 +195,26 @@ namespace Day015_01_color
             }
             MessageBox.Show("업로드 완료!");
         }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            conn = new MySqlConnection(connStr);
+            conn.Open();
+            cmd = new MySqlCommand("", conn);
+            //폴더 생성 display()용
+            String srcPath = "C:\\TempImages";
+            DirectoryInfo di1 = new DirectoryInfo(srcPath);
+            if (di1.Exists == false)
+            {
+                di1.Create();
+            }
+            //폴더 생성 openDBFull()용
+            srcPath = "C:\\TempImagesDBOpen";
+            DirectoryInfo di2 = new DirectoryInfo(srcPath);
+            if (di2.Exists == false)
+            {
+                di2.Create();
+            }
+        }
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
             conn.Close();
@@ -268,6 +288,18 @@ namespace Day015_01_color
         private void 히스토그램그리기ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             drawHistogram();
+        }
+        private void 엠보싱ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            embossImage();
+        }
+        private void 블러링ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            blurrImage();
+        }
+        private void 샤프닝ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            sharpImage();
         }
         private void 미디언필터ToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -471,12 +503,8 @@ namespace Day015_01_color
                 }
                 undoList.Add(outImage);
             }
-            /*byte[] f_data = new byte[RGB * outH * outW];
-            System.Buffer.BlockCopy(outImage, 0, f_data, 0, RGB * sizeof(byte) * outH * outW);*/
-            // 벽, 게시판, 종이 크기 조절    900, 600
+            // 파일에 저장하기
             paper = new Bitmap(outH, outW); // 종이
-            pictureBox1.Size = new System.Drawing.Size(outH, outW); // 캔버스
-            this.Size = new System.Drawing.Size(outH + 80, outW + 100); // 벽
             Color pen; // 펜(콕콕 찍을 용도)
             for (int i = 0; i < outH; i++)
             {
@@ -491,10 +519,36 @@ namespace Day015_01_color
             }
             String full_name = "C:\\TempImages\\" + saveIndex++ + "번째 이미지.png";
             paper.Save(full_name, ImageFormat.Png); // 종이를 PNG로 저장
-            pictureBox1.Image = paper; // 게시판에 종이를 붙이기.
-            //실행 취소 -> 파일경로 구현 못함
-            toolStripStatusLabel1.Text =
-                outH.ToString() + "x" + outW.ToString();
+            // 화면에 보여주기
+            double MAXSIZE = 800; // 조절 가능
+            int oW = outW, oH = outH;
+            double hop = 1.0;
+            if (oH > MAXSIZE || oW > MAXSIZE)
+            {
+                if (outW > outH)
+                    hop = (outW / MAXSIZE);
+                else
+                    hop = (outH / MAXSIZE);
+                oW = (int)(outW / hop); oH = (int)(outH / hop);
+            }
+            // 종이, 게시판, 벽 크기 조절
+            paper = new Bitmap(oH, oW);
+            pictureBox1.Size = new System.Drawing.Size(oH, oW);
+            this.Size = new System.Drawing.Size(oH + 20, oW + 90);
+            for (int i = 0; i < oH; i++)
+                for (int k = 0; k < oW; k++)
+                {
+                    if (i >= oH - 1 || k >= oW - 1)
+                        continue;
+                    byte dataR = outImage[RR, (int)(i * hop), (int)(k * hop)];  // 색깔 (잉크)
+                    byte dataG = outImage[GG, (int)(i * hop), (int)(k * hop)];  // 색깔 (잉크)
+                    byte dataB = outImage[BB, (int)(i * hop), (int)(k * hop)];  // 색깔 (잉크)
+                    pen = Color.FromArgb(dataR, dataG, dataB); // 펜에 잉크 묻힘
+                    paper.SetPixel(i, k, pen); // 종이에 콕 찍음.
+                }
+            pictureBox1.Image = paper; // 게시판에 종이 걸기
+            toolStripStatusLabel1.Text = "영상크기 : " + outH + " x " + outW;
+
         }
         double getValue()
         {
@@ -523,18 +577,6 @@ namespace Day015_01_color
             }
             String value = sub.tb_GetString.Text.ToString();
             return value;
-        }
-        private void 엠보싱ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            embossImage();
-        }
-        private void 블러링ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            blurrImage();
-        }
-        private void 샤프닝ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            sharpImage();
         }
         //영상처리 함수부
         private void dfs_autoUpload(String fullName)
@@ -1231,25 +1273,6 @@ namespace Day015_01_color
             //임시 출력 -> 원래 출력
             outCopy(tmpOutput);
             displayImage();
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            conn = new MySqlConnection(connStr);
-            conn.Open();
-            cmd = new MySqlCommand("", conn);
-            String srcPath = "C:\\TempImages";
-            DirectoryInfo di1 = new DirectoryInfo(srcPath);
-            if(di1.Exists == false)
-            {
-                di1.Create();
-            }
-            srcPath = "C:\\TempImagesDBOpen";
-            DirectoryInfo di2 = new DirectoryInfo(srcPath);
-            if (di2.Exists == false)
-            {
-                di2.Create();
-            }
         }
         void dilation()
         {
